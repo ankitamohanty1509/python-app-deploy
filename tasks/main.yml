@@ -1,0 +1,37 @@
+---
+- name: Set Python package based on distribution
+  set_fact:
+    python_pkg: >-
+      {{ {
+        'Ubuntu': 'python3',
+        'Debian': 'python3',
+        'CentOS': 'python3',
+        'RedHat': 'python3',
+        'Fedora': 'python3',
+        'Amazon': 'python3',
+        'Archlinux': 'python',
+        'Alpine': 'python3',
+        'SUSE': 'python3'
+      }[ansible_distribution] | default('python3') }}
+
+- name: Update package cache (Debian-based)
+  apt:
+    update_cache: yes
+  when: ansible_os_family == "Debian"
+
+- name: Ensure Python3 is installed
+  package:
+    name: "{{ python_pkg }}"
+    state: present
+
+- name: Ensure config directory exists
+  file:
+    path: /etc/python_app
+    state: directory
+    mode: '0755'
+
+- name: Deploy application configuration
+  template:
+    src: config.yml.j2
+    dest: /etc/python_app/config.yml
+    mode: '0644'
